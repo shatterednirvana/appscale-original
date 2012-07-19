@@ -139,9 +139,25 @@ class Users:
     return userstring
 
   def checksum(self):
+    """
+      Produces a checksum based on the contents of the fields in this Users
+        object.
+
+      Returns:
+        An int checksum for this Users object.
+
+      TODO(nchohan): Why doesn't this actually compute a checksum?
+    """
     return 1
 
   def arrayit(self):
+    """
+    Converts all fields in the current Users object into a list.
+
+    Returns:
+      A list, whose elements are string representations of each field in the
+        given Users object.
+    """
     array = []
     # order must match self.attributes_
     # some entries must be converted to string format from arrays
