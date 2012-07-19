@@ -118,6 +118,14 @@ class Users:
     return
   
   def stringit(self):
+    """
+      Produces a string whose contents are the str'ed versions of each field
+        in this Users object.
+
+      Returns:
+        A newline-delimited string with the contents of each field in this
+          Users object.
+    """
     userstring = ""
     userstring += "user_email:" + str(self.email_) + "\n" 
     userstring += "password:" + str(self.pw_) + "\n"
@@ -170,12 +178,25 @@ class Users:
     return array 
    
   def unpackit(self, array):
-    #try:
-    for ii in range(0,len(array)):
+    """
+      Sets fields in this Users object based on the contents of the given 
+        array. Conceptually, this method is the converse of arrayit.
+
+      Arguments:
+        array: A list of fields to set in the current Users object.
+        TODO(nchohan): This isn't a map - how is there any guarantee that the
+          fields are set correctly? Shouldn't this be a dict so that the order
+          doesn't matter?
+
+      Raises:
+        TODO(nchohan): There used to be a try/except on setattr - what could
+          it throw and why?
+
+      Returns:
+        "true" if the unpacking succeeds.
+    """
+    for ii in range(0, len(array)):
       setattr(self, Users.attributes_[ii] + "_", array[ii])
-    #except Exception, ex:
-    #  print ex
-    #  return    
     
     # convert from string to list
     if self.applications_:
