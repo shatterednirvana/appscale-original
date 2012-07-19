@@ -29,6 +29,8 @@ case "$1" in
 	installzookeeper
 #	fi
 	installneptune
+	installtmux
+	installcoveragedotpy
 	installservice
         patchxmpp
 	;;

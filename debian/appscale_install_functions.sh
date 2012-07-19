@@ -330,6 +330,11 @@ postinstalltmux()
     :;
 }
 
+installcoveragedotpy()
+{
+    easy_install coverage
+}
+
 # deb package version
 installhypertable()
 {
