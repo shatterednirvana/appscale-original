@@ -3,51 +3,97 @@
 # See LICENSE file
 
 
-# we don't use PYTHONPATH now.
-#PYTHON_PATH = os.environ.get("PYTHONPATH")
-#print "Python path: ",PYTHON_PATH
-#print sys.path
-
+import appscale_datastore
+import appscale_logger
+import datetime
+import re
 import sys
 import SOAPpy
 import time
-import datetime
-import re
+
+
 from dbconstants import *
-import appscale_datastore
-import appscale_logger
 from M2Crypto import SSL
+
 
 logger = appscale_logger.getLogger("soap_server")
 
+
 APP_TABLE = APPS_TABLE
+
+
 USER_TABLE = USERS_TABLE
+
+
 DEFAULT_USER_LOCATION = ".flatfile_users"
+
+
 DEFAULT_APP_LOCATION = ".flatfile_apps"
+
+
 DEFAULT_DATASTORE = "hbase"
+
+
 DEFAULT_SSL_PORT = 4343
+
+
 DEFAULT_PORT = 9899
+
+
 IP_TABLE = "IPS___"
+
+
 DEFAULT_ENCRYPTION = 1
+
+
 VALID_DATASTORES = []   
+
+
 CERT_LOCATION = "/etc/appscale/certs/mycert.pem" 
+
+
 KEY_LOCATION = "/etc/appscale/certs/mykey.pem" 
+
+
 SECRET_LOCATION = "/etc/appscale/secret.key"
+
+
 user_location = DEFAULT_USER_LOCATION
+
+
 app_location = DEFAULT_APP_LOCATION
+
+
 datastore_type = DEFAULT_DATASTORE
-encryptOn = DEFAULT_ENCRYPTION
+
+
 bindport = DEFAULT_SSL_PORT
 
+
 ERROR_CODES = []
+
+
 super_secret = ""
+
+
 DEBUG = True
+
+
 db = []
+
+
 user_schema = []
+
+
 app_schema = []
 
+
 APPNAME_REGEX = r'^[\d\w\.@-]+$'
+
+
 VALID_USER_TYPES = ["user", "xmpp_user", "app", "channel"]
+
+
 class Users:
   attributes_ = USERS_SCHEMA
   def __init__(self, email, password, utype):

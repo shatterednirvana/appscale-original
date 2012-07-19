@@ -40,7 +40,6 @@ SECRET_LOCATION = APPSCALE_HOME + "/.appscale/secret.key"
 user_location = DEFAULT_USER_LOCATION
 app_location = DEFAULT_APP_LOCATION
 datastore_type = DEFAULT_DATASTORE
-encryptOn = DEFAULT_ENCRYPTION
 bindport = DEFAULT_SSL_PORT
 
 ERROR_CODES = []
