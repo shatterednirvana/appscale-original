@@ -1184,7 +1184,7 @@ def usage():
   print "      --port or -p for server port"
   print "      --http for http rather than ssl"
 
-if __name__ == "__main__":
+def main():
   encrypt = 1
 
   for ii in range(1,len(sys.argv)):
@@ -1275,10 +1275,33 @@ if __name__ == "__main__":
     server = SOAPpy.SOAPServer((ip, bindport), ssl_context = ssl_context)
   else:
     server = SOAPpy.SOAPServer((ip,bindport))
-  #Register Functions
 
+  register_functions(server)
+
+  while 1:
+    try:
+      # Run Server
+      server.serve_forever()
+    except SSL.SSLError:
+      pass
+      #logger.warn("Unexpected input on port %d for SOAP Server" % bindport)
+      #print "WARNING: Unexpected input on port " + str(bindport) + "for SOAP Server"
+
+
+def register_functions(server):
+  """
+    Publicly exposes all of the methods needed for external callers in the
+      given SOAP server.
+
+    Arguments:
+      server: A SOAPServer that methods can be exposed via.
+
+    Returns:
+      None.
+  """
   server.registerFunction(add_class)
   server.registerFunction(add_instance)
+
   server.registerFunction(does_user_exist)
   server.registerFunction(does_app_exist)
 
@@ -1291,11 +1314,13 @@ if __name__ == "__main__":
   server.registerFunction(get_token)
   server.registerFunction(get_version)
   server.registerFunction(get_ip)
+
   server.registerFunction(commit_new_user)
   server.registerFunction(commit_new_app)
   server.registerFunction(commit_tar)
   server.registerFunction(commit_new_token)
   server.registerFunction(commit_ip)
+
   server.registerFunction(delete_instance)
   server.registerFunction(delete_all_users)
   server.registerFunction(delete_all_apps)
@@ -1316,11 +1341,6 @@ if __name__ == "__main__":
   server.registerFunction(get_capabilities)
   server.registerFunction(set_capabilities)
 
-  while 1:
-    try:
-      # Run Server
-      server.serve_forever()
-    except SSL.SSLError:
-      pass
-      #logger.warn("Unexpected input on port %d for SOAP Server" % bindport)
-      #print "WARNING: Unexpected input on port " + str(bindport) + "for SOAP Server"
+
+if __name__ == "__main__":
+  main()
