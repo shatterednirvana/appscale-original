@@ -95,7 +95,11 @@ VALID_USER_TYPES = ["user", "xmpp_user", "app", "channel"]
 
 
 class Users:
+
+
   attributes_ = USERS_SCHEMA
+
+
   def __init__(self, email, password, utype):
     self.email_ = email
     self.pw_ = password
@@ -115,7 +119,7 @@ class Users:
     self.type_ = utype
     self.is_cloud_admin_ = "false"
     self.capabilities_ = ""
-    return
+
   
   def stringit(self):
     """
@@ -146,6 +150,7 @@ class Users:
     userstring += "capabilities:" + str(self.capabilities_) + "\n"
     return userstring
 
+
   def checksum(self):
     """
       Produces a checksum based on the contents of the fields in this Users
@@ -157,6 +162,7 @@ class Users:
       TODO(nchohan): Why doesn't this actually compute a checksum?
     """
     return 1
+
 
   def arrayit(self):
     """
@@ -176,7 +182,8 @@ class Users:
         array.append(str(getattr(self, ii+ "_")));
 
     return array 
-   
+
+
   def unpackit(self, array):
     """
       Sets fields in this Users object based on the contents of the given 
@@ -206,8 +213,13 @@ class Users:
   
     return "true"
 
+
 class Apps:
+
+
   attributes_ = APPS_SCHEMA
+  
+  
   def __init__(self, name, owner, language):
     self.tar_ball_ = "None"
     self.yaml_file_ = "None"
@@ -228,7 +240,7 @@ class Apps:
     self.enabled_ = "true"
     self.classes_ = []
     self.indexes_ = "0"
-    return
+
   
   def stringit(self):
     appstring = ""
@@ -250,10 +262,12 @@ class Apps:
     appstring += "classes:" + ':'.join(self.classes_) + "\n"
     appstring += "indexes:" + str(self.indexes_) + "\n"
     return appstring
-  
+
+
   def checksum(self):
     return "true"
-  
+
+
   def arrayit(self):
     array = []
     # order must match self.attributes
@@ -265,7 +279,8 @@ class Apps:
         array.append(str(getattr(self, ii+ "_")));
 
     return array 
-  
+
+
   def unpackit(self, array):
    #try:
     for ii in range(0,len(array)):
@@ -296,6 +311,7 @@ class Apps:
       self.classes_ = []
     return "true"
 
+
 def does_user_exist(username, secret):
   global db
   global super_secret
@@ -311,6 +327,7 @@ def does_user_exist(username, secret):
     if DEBUG: print "false"
     return "false"    
 
+
 def does_app_exist(appname, secret):
   global db
   global super_secret
@@ -325,6 +342,7 @@ def does_app_exist(appname, secret):
   else:
     if DEBUG: print "false"
     return "false"    
+
 
 def get_user_apps(username, secret):
   global db
@@ -342,6 +360,7 @@ def get_user_apps(username, secret):
     #logger.error(error)
     if DEBUG: print error
     return error
+
 
 def get_user_data(username, secret):
   global db
@@ -370,6 +389,7 @@ def get_user_data(username, secret):
   user.unpackit(result)
   return user.stringit()
 
+
 def get_app_data(appname, secret):
   global db
   global super_secret
@@ -397,6 +417,7 @@ def get_app_data(appname, secret):
   app = Apps("a","b", "c")
   app.unpackit(result)
   return app.stringit()
+
 
 def commit_new_user(user, passwd, utype, secret):  
   global db
@@ -430,6 +451,7 @@ def commit_new_user(user, passwd, utype, secret):
     return "false"
   if DEBUG: print "true"
   return "true"
+
 
 def commit_new_app(appname, user, language, secret):
   global db
@@ -502,6 +524,7 @@ def commit_new_app(appname, user, language, secret):
     if DEBUG: print error
     return error
 
+
 def get_tar(app_name, secret):
   global db
   global super_secret
@@ -518,6 +541,7 @@ def get_tar(app_name, secret):
     #logger.error(error + result[0])
     if DEBUG: print result[0]
     return "Error:" + result[0]
+
 
 def commit_tar(app_name, tar, secret):
   global db
@@ -561,6 +585,7 @@ def commit_tar(app_name, tar, secret):
   if DEBUG: print "commit_tar: exiting successfully"
   return "true"
 
+
 def delete_all_users(secret):
   global db
   global super_secret
@@ -592,6 +617,7 @@ def delete_all_users(secret):
       ret = "false"
   return ret 
 
+
 def delete_all_apps(secret):
   global db
   global super_secret
@@ -610,6 +636,7 @@ def delete_all_apps(secret):
     if delete_app(ii, secret) == "false":
       ret = "false"
   return ret 
+
 
 def get_all_users(secret):
   global db
@@ -641,6 +668,7 @@ def get_all_users(secret):
     userstring += ":" + kk.email_
   return userstring
 
+
 def get_all_apps(secret):
   global db
   global super_secret
@@ -670,6 +698,7 @@ def get_all_apps(secret):
   for kk in apps:
     appstring += ":" + kk.name_
   return appstring
+
 
 def add_instance(appname, host, port, secret):
   global db
@@ -708,6 +737,7 @@ def add_instance(appname, host, port, secret):
     return "false"
   return "true" 
 
+
 def add_class(appname, classname, namespace, secret):
   global db
   global super_secret
@@ -744,6 +774,7 @@ def add_class(appname, classname, namespace, secret):
     #logger.error("add_class: Unable to put entity for app %s" %appname)
     return "false: Unable to put entity for app"
   return "true" 
+
 
 def delete_app(appname, secret):
   global db
@@ -812,7 +843,8 @@ def delete_app(appname, secret):
   
   # disabling the app, a type of soft delete 
   return disable_app(appname, secret)
-  
+
+
 def delete_instance(appname, host, port, secret):
   global db
   global super_secret
@@ -854,6 +886,7 @@ def delete_instance(appname, host, port, secret):
     return "false"
   return ret 
 
+
 def commit_new_token(user, token, token_exp, secret):
   global db
   global super_secret
@@ -882,6 +915,7 @@ def commit_new_token(user, token, token_exp, secret):
     return "false"
   return "true"
 
+
 def get_token(user, secret):
   global db
   global super_secret
@@ -896,6 +930,7 @@ def get_token(user, secret):
   result = result[1:]
   return "token:"+ result[0] + "\n" + "token_exp:" + result[1] + "\n"
 
+
 def get_version(appname, secret):
   global db
   global super_secret
@@ -909,7 +944,8 @@ def get_version(appname, secret):
     return "false"
   result = result[1:]
   return "version: " + result[0] + "\n"
- 
+
+
 def change_password(user, password, secret):
   global db
   global super_secret
@@ -937,6 +973,7 @@ def change_password(user, password, secret):
     #logger.error("change password: unable to put user update %s" % user)
     return "Error:" + result[0]
   return "true"
+
 
 def enable_app(appname, secret):
   global db
@@ -981,6 +1018,7 @@ def disable_app(appname, secret):
     return "false"
   return "true"
 
+
 def is_app_enabled(appname, secret):
   global db
   global super_secret
@@ -993,7 +1031,8 @@ def is_app_enabled(appname, secret):
     #logger.error("is_app_enabled: unable to get app %s" %appname)
     return "false" 
   return result[1]
- 
+
+
 def enable_user(user, secret):
   global db
   global super_secret
@@ -1036,6 +1075,7 @@ def disable_user(user, secret):
     return "false"
   return "true"
 
+
 def delete_user(user, secret):
   global db
   global user_schema
@@ -1058,6 +1098,7 @@ def delete_user(user, secret):
     return "false"
   return "true"
 
+
 def is_user_enabled(user, secret):
   global db
   global super_secret
@@ -1070,6 +1111,7 @@ def is_user_enabled(user, secret):
     #logger.error("is_user_enabled: unable to get user %s" %user)
     return "false" 
   return result[1]
+
 
 def get_key_block(app_id, block_size, secret):
   global db
@@ -1095,6 +1137,7 @@ def get_key_block(app_id, block_size, secret):
     return "false"
   return key
 
+
 def commit_ip(ip, email, secret):
   global db
   global super_secret
@@ -1107,6 +1150,7 @@ def commit_ip(ip, email, secret):
     return "false:" + result[0]
   return "true"
 
+
 def get_ip(ip, secret):
   global db
   global super_secret
@@ -1118,6 +1162,7 @@ def get_ip(ip, secret):
     #logger.error("get_ip:Error getting new ip: " + result[0])
     return "false:" + result[0]
   return result[1] 
+
 
 def is_user_cloud_admin(username, secret):
   global db
@@ -1134,6 +1179,7 @@ def is_user_cloud_admin(username, secret):
     if DEBUG: print "false"
     return "false"
 
+
 def set_cloud_admin_status(username, is_cloud_admin, secret):
   global db
   global super_secret
@@ -1145,6 +1191,7 @@ def set_cloud_admin_status(username, is_cloud_admin, secret):
     #logger.error("set_cloud_admin:Error commiting new ip: " + result[0])
     return "false:" + result[0]
   return "true"
+
 
 def get_capabilities(username, secret):
   global db
@@ -1161,6 +1208,7 @@ def get_capabilities(username, secret):
     if DEBUG: print [result[0]]
     return [result[0]]
 
+
 def set_capabilities(username, capabilities, secret):
   global db
   global super_secret
@@ -1173,6 +1221,7 @@ def set_capabilities(username, capabilities, secret):
     return "false:" + result[0]
   return "true"
 
+
 def usage():
   print "args: --apps or -a for the application location"
   print "      --users or -u for the user location"
@@ -1183,6 +1232,7 @@ def usage():
   print "                      cassandra"
   print "      --port or -p for server port"
   print "      --http for http rather than ssl"
+
 
 def main():
   encrypt = 1
