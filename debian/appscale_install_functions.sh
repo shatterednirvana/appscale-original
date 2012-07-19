@@ -330,9 +330,10 @@ postinstalltmux()
     :;
 }
 
-installcoveragedotpy()
+installpythontesting()
 {
     easy_install coverage
+    easy_install flexmock
 }
 
 # deb package version

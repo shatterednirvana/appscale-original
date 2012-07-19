@@ -30,7 +30,7 @@ case "$1" in
 #	fi
 	installneptune
 	installtmux
-	installcoveragedotpy
+	installpythontesting
 	installservice
         patchxmpp
 	;;
