@@ -191,6 +191,7 @@ class NeptuneManager
   end
 
 
+  # FIXME: not called jobs anymore - make this the batch version!
   def start_job(jobs, secret)
     if jobs.class == Hash
       jobs = [jobs]
