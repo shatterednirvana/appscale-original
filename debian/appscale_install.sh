@@ -17,6 +17,7 @@ case "$1" in
     core)
 	installappscaleprofile
 	installgems
+	installtwemcache
         installsetuptools
 	installhaproxy
 	installnginx
