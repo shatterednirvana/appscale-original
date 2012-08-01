@@ -208,9 +208,11 @@ postinstallthrift()
 
 installtwemcache()
 {
+    cd /usr/local/
     wget http://appscale.cs.ucsb.edu/appscale_files/twemcache_2.5.0_amd64.deb
     dpkg -i twemcache_2.5.0_amd64.deb
     rm -fv twemcache_2.5.0_amd64.deb
+    cd
 }
 
 installappserverjava()
