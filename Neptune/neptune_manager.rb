@@ -1188,4 +1188,40 @@ class NeptuneManager
   end
 
 
+  # Runs a series of jobs in parallel, if the correct secret is given. Jobs is
+  # expected to be an Array of Hashes, where each Hash is a job to run. This
+  # function provides batch functionality for the 'start_job' method.
+  def batch_start_job(jobs, secret)
+    return BAD_SECRET_MSG unless valid_secret?(secret)
+  end
+
+
+  # Stores a series of files in the specified datastores, if the correct
+  # secret is given. 'files' is expected to be an Array of Hashes, where each
+  # Hash contains a key about the file itself, and a key about the credentials
+  # and location data necessary to know how to store the file. This method
+  # provides batch functionality for the 'put_input' method.
+  def batch_put_input(files, secret)
+    return BAD_SECRET_MSG unless valid_secret?(secret)
+  end
+
+
+  # For each babel job given, determines which engines the job can be run over.
+  # 'jobs' is expected to be an Array of Hashes, where each Hash represents
+  # a single job's credentials. This method provides batch functionality for
+  # the 'get_supported_babel_engines' method.
+  def batch_get_supported_babel_engines(jobs, secret)
+    return BAD_SECRET_MSG unless valid_secret?(secret)
+  end
+
+
+  # For each file given, determines if it exists in the specified datastore
+  # with the specified credentials. 'files' is assumed to be an Array of Hashes,
+  # where each Hash contains all the data needed to check the given datastore
+  # to see if that file exists.
+  def batch_does_file_exist(files, secret)
+    return BAD_SECRET_MSG unless valid_secret?(secret)
+  end
+
+
 end

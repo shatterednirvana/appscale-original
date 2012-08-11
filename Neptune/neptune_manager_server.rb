@@ -41,9 +41,10 @@ class NeptuneManagerServer < SOAP::RPC::HTTPServer
     add_method(@manager, "get_queues_in_use", "secret")
     
     # Add the new, batch SOAP calls.
-    @conn.add_method("batch_start_job", "jobs", "secret")
-    @conn.add_method("batch_get_supported_babel_engines", "jobs", "secret")
-    @conn.add_method("batch_does_file_exist", "files", "jobs", "secret")
+    add_method(@manager, "batch_start_job", "jobs", "secret")
+    add_method(@manager, "batch_put_input", "files", "secret")
+    add_method(@manager, "batch_get_supported_babel_engines", "jobs", "secret")
+    add_method(@manager, "batch_does_file_exist", "files", "secret")
 
     NeptuneManager::JOB_LIST.each { |name|
       add_method(@manager, "#{name}_run_job", "nodes", "jobs", "secret")

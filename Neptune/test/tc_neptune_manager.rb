@@ -197,4 +197,48 @@ class TestNeptuneManager < Test::Unit::TestCase
     assert_equal(NeptuneManager::RUN_JOBS_IN_PARALLEL, actual)
   end
 
+  def test_batch_start_job
+    neptune = NeptuneManager.new()
+
+    # first, make sure that we reject calls that use an incorrect secret
+    expected1 = NeptuneManager::BAD_SECRET_MSG
+    actual1 = neptune.batch_start_job([], "bad secret")
+    assert_equal(expected1, actual1)
+
+    # TODO(cgb): now test the actual functionality
+  end
+
+  def test_batch_put_input
+    neptune = NeptuneManager.new()
+
+    # first, make sure that we reject calls that use an incorrect secret
+    expected1 = NeptuneManager::BAD_SECRET_MSG
+    actual1 = neptune.batch_put_input([], "bad secret")
+    assert_equal(expected1, actual1)
+
+    # TODO(cgb): now test the actual functionality
+  end
+
+  def test_batch_get_supported_babel_engines
+    neptune = NeptuneManager.new()
+
+    # first, make sure that we reject calls that use an incorrect secret
+    expected1 = NeptuneManager::BAD_SECRET_MSG
+    actual1 = neptune.batch_get_supported_babel_engines([], "bad secret")
+    assert_equal(expected1, actual1)
+
+    # TODO(cgb): now test the actual functionality
+  end
+
+  def test_batch_does_file_exist
+    neptune = NeptuneManager.new()
+
+    # first, make sure that we reject calls that use an incorrect secret
+    expected1 = NeptuneManager::BAD_SECRET_MSG
+    actual1 = neptune.batch_does_file_exist([], "bad secret")
+    assert_equal(expected1, actual1)
+
+    # TODO(cgb): now test the actual functionality
+  end
+
 end
