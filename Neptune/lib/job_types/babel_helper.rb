@@ -184,6 +184,21 @@ class NeptuneManager
   end
 
 
+  # For each babel job given, determines which engines the job can be run over.
+  # 'jobs' is expected to be an Array of Hashes, where each Hash represents
+  # a single job's credentials. This method provides batch functionality for
+  # the 'get_supported_babel_engines' method.
+  def batch_get_supported_babel_engines(jobs, secret)
+    return BAD_SECRET_MSG unless valid_secret?(secret)
+
+    batch_results = {"success" => true}
+    jobs.each { |job|
+      batch_results[job] = get_supported_babel_engines(job, secret)
+    }
+    return batch_results
+  end
+
+
   # This method is the spawning service for Babel - that is, it decides where 
   # tasks should be spawned. For now, we don't intelligently decide where to
   # run tasks - we just run tasks where the user tells us to run them. Since
