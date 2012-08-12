@@ -198,6 +198,11 @@ class TestNeptuneManager < Test::Unit::TestCase
   end
 
   def test_batch_start_job
+    # mock out any actual job running - we're just testing the interface
+    flexmock(NeptuneManager).new_instances { |instance|
+      instance.should_receive(:dispatch_jobs).and_return()
+    }
+
     neptune = NeptuneManager.new()
 
     # first, make sure that we reject calls that use an incorrect secret
@@ -205,7 +210,18 @@ class TestNeptuneManager < Test::Unit::TestCase
     actual1 = neptune.batch_start_job([], "bad secret")
     assert_equal(expected1, actual1)
 
-    # TODO(cgb): now test the actual functionality
+    # next, test out how we run one job
+    job1 = {}
+    expected = {
+      "success" => true,
+      "state" => NeptuneManager::JOB_IS_RUNNING
+    }
+    actual2 = neptune.batch_start_job([job1], @secret)
+    assert_equal(expected, actual2)
+
+    # and then multiple jobs
+    actual3 = neptune.batch_start_job([job1, job1], @secret)
+    assert_equal(expected, actual3)
   end
 
   def test_batch_put_input
@@ -219,17 +235,6 @@ class TestNeptuneManager < Test::Unit::TestCase
     # TODO(cgb): now test the actual functionality
   end
 
-  def test_batch_get_supported_babel_engines
-    neptune = NeptuneManager.new()
-
-    # first, make sure that we reject calls that use an incorrect secret
-    expected1 = NeptuneManager::BAD_SECRET_MSG
-    actual1 = neptune.batch_get_supported_babel_engines([], "bad secret")
-    assert_equal(expected1, actual1)
-
-    # TODO(cgb): now test the actual functionality
-  end
-
   def test_batch_does_file_exist
     neptune = NeptuneManager.new()
 
@@ -238,7 +243,41 @@ class TestNeptuneManager < Test::Unit::TestCase
     actual1 = neptune.batch_does_file_exist([], "bad secret")
     assert_equal(expected1, actual1)
 
-    # TODO(cgb): now test the actual functionality
+    # now, let's do a test where all the files exist
+
+    # first, mock out our s3 connection
+    access = "access key"
+    secret = "secret key"
+    s3_url = "s3 url"
+
+    fake_s3 = flexmock('fake_s3')
+    fake_s3.should_receive(:list_all_my_buckets).with().
+      and_return([{:name => "boo"}])
+    fake_s3.should_receive(:get_acl).with("boo", "baz1.rb").and_return(true)
+    fake_s3.should_receive(:get_acl).with("boo", "baz2.rb").and_return(true)
+    flexmock(RightAws::S3Interface).should_receive(:new).with(access, secret).
+      and_return(fake_s3)
+
+    creds = {
+      "@storage" => DatastoreS3::NAME,
+      "@EC2_ACCESS_KEY" => access,
+      "@EC2_SECRET_KEY" => secret,
+      "@S3_URL" => s3_url
+    }
+    file1 = "/boo/baz1.rb"
+    file2 = "/boo/baz2.rb"
+    files1 = {creds => [file1, file2]}
+    expected2 = {
+      "files_that_exist" => files1,
+      "files_that_dont_exist" => {},
+      "success" => true
+    }
+    actual2 = neptune.batch_does_file_exist(files1, @secret)
+    assert_equal(expected2['files_that_exist'][creds].sort, 
+      actual2['files_that_exist'][creds].sort)
+    assert_equal(expected2['files_that_dont_exist'], 
+      actual2['files_that_dont_exist'])
+    assert_equal(expected2['success'], actual2['success'])
   end
 
 end

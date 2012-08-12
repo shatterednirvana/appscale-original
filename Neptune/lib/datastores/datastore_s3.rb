@@ -206,6 +206,16 @@ class DatastoreS3 < Datastore
   end
 
 
+  # Checks whether the given files exist in S3.
+  def batch_does_file_exist?(paths)
+    results = {}
+    paths.each { |path|
+      results[path] = does_file_exist?(path)
+    }
+    return results
+  end
+
+
   # Queries Amazon S3 with the given connection to see if the user owns the
   # named bucket.
   def s3_bucket_exists?(bucket)
