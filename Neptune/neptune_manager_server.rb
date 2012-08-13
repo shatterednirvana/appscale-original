@@ -42,7 +42,7 @@ class NeptuneManagerServer < SOAP::RPC::HTTPServer
     
     # Add the new, batch SOAP calls.
     add_method(@manager, "batch_start_job", "jobs", "secret")
-    add_method(@manager, "batch_put_input", "files", "secret")
+    add_method(@manager, "batch_put_input", "creds_and_files", "secret")
     add_method(@manager, "batch_get_supported_babel_engines", "jobs", "secret")
     add_method(@manager, "batch_does_file_exist", "creds_and_files", "secret")
 

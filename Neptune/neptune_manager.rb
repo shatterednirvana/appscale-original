@@ -1205,15 +1205,36 @@ class NeptuneManager
   # datastore credentials to the files that can be stored with those 
   # credentials. This method provides batch functionality for the 'put_input' 
   # method.
-  def batch_put_input(files, secret)
+  def batch_put_input(creds_and_files, secret)
     return BAD_SECRET_MSG unless valid_secret?(secret)
 
     creds_and_files.each { |creds, files|
       name = creds["@storage"]
       datastore = DatastoreFactory.get_datastore(name, creds)
-      # wait for the file to exist
-      # put the file in the datastore
-      # erase the local copy
+      files.each { |file_data|
+        local = file_data["local"]
+        remote = file_data["remote"]
+        wait_for_file_to_exist(local)
+        datastore.write_remote_file_from_local_file(remote, local)
+        FileUtils.rm_rf(local)
+      }
+    }
+
+    return {"success" => true}
+  end
+
+
+  # Waits for the specified file to exist on the local filesystem, and then
+  # returns.
+  def wait_for_file_to_exist(filename)
+    loop {
+      if File.exists?(filename)
+        NeptuneManager.log("Found file #{filename}, returning.")
+        return
+      else
+        NeptuneManager.log("Still waiting for #{filename} to exist")
+        Kernel.sleep(5)
+      end
     }
   end
 
