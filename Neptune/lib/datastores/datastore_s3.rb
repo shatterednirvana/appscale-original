@@ -82,6 +82,12 @@ class DatastoreS3 < Datastore
       # deep, we need to make all the directories first
       FileUtils.mkdir_p(File.dirname(full_local_path))
 
+      if full_local_path[-1].chr == "/"
+        NeptuneManager.log("Local file #{full_local_path} is a directory - " +
+          "not downloading it remotely")
+        next
+      end
+
       begin
         f = File.new(full_local_path, File::CREAT|File::RDWR)
         result = @conn.get(bucket, s3_filename) { |chunk|
