@@ -82,6 +82,12 @@ class DatastoreS3 < Datastore
       # deep, we need to make all the directories first
       FileUtils.mkdir_p(File.dirname(full_local_path))
 
+      if full_local_path[-1].chr == "/"
+        NeptuneManager.log("Local file #{full_local_path} is a directory - " +
+          "not downloading it remotely")
+        next
+      end
+
       begin
         f = File.new(full_local_path, File::CREAT|File::RDWR)
         result = @conn.get(bucket, s3_filename) { |chunk|
@@ -203,6 +209,16 @@ class DatastoreS3 < Datastore
       NeptuneManager.log("[does file exist] saw a RightAws::AwsError on path [#{path}]")
       return false
     end
+  end
+
+
+  # Checks whether the given files exist in S3.
+  def batch_does_file_exist?(paths)
+    results = {}
+    paths.each { |path|
+      results[path] = does_file_exist?(path)
+    }
+    return results
   end
 
 

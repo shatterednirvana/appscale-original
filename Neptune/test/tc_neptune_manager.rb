@@ -197,4 +197,122 @@ class TestNeptuneManager < Test::Unit::TestCase
     assert_equal(NeptuneManager::RUN_JOBS_IN_PARALLEL, actual)
   end
 
+  def test_batch_start_job
+    # mock out any actual job running - we're just testing the interface
+    flexmock(NeptuneManager).new_instances { |instance|
+      instance.should_receive(:dispatch_jobs).and_return()
+    }
+
+    neptune = NeptuneManager.new()
+
+    # first, make sure that we reject calls that use an incorrect secret
+    expected1 = NeptuneManager::BAD_SECRET_MSG
+    actual1 = neptune.batch_start_job([], "bad secret")
+    assert_equal(expected1, actual1)
+
+    # next, test out how we run one job
+    job1 = {}
+    expected = {
+      "success" => true,
+      "state" => NeptuneManager::JOB_IS_RUNNING
+    }
+    actual2 = neptune.batch_start_job([job1], @secret)
+    assert_equal(expected, actual2)
+
+    # and then multiple jobs
+    actual3 = neptune.batch_start_job([job1, job1], @secret)
+    assert_equal(expected, actual3)
+  end
+
+  def test_batch_put_input
+    # mock out all logging
+    flexmock(NeptuneManager).should_receive(:log).and_return()
+
+    # mock out interactions with s3
+    fake_s3 = flexmock('s3')
+    remote = "/remote/baz.rb"
+    fake_s3.should_receive(:put).with("remote", "baz.rb", "anything").
+      and_return(true)
+    flexmock(RightAws::S3Interface).should_receive(:new).with("access", 
+      "secret").and_return(fake_s3)
+
+    # lets say that our local file to test putting in exists
+    local = "/local/baz.rb"
+    flexmock(File).should_receive(:exists?).with(local).and_return(true)
+    flexmock(File).should_receive(:open).with(local).and_return("anything")
+
+    # mock out all occurrences of fileutils, and add back in the ones we need
+    # to verify
+    flexmock(FileUtils).should_receive(:rm_rf).and_return()
+
+    neptune = NeptuneManager.new()
+
+    # first, make sure that we reject calls that use an incorrect secret
+    expected1 = NeptuneManager::BAD_SECRET_MSG
+    actual1 = neptune.batch_put_input({}, "bad secret")
+    assert_equal(expected1, actual1)
+
+    # now test when we put in a single file
+    creds = {
+      "@storage" => "s3",
+      "@EC2_ACCESS_KEY" => "access",
+      "@EC2_SECRET_KEY" => "secret",
+      "@S3_URL" => "s3 url"
+    }
+    file = {
+      "local" => local,
+      "remote" => "/remote/baz.rb"
+    }
+    files = [file]
+    creds_and_files = {creds => files}
+    expected2 = {"success" => true} 
+    actual2 = neptune.batch_put_input(creds_and_files, @secret)
+    assert_equal(expected2, actual2)
+  end
+
+  def test_batch_does_file_exist
+    neptune = NeptuneManager.new()
+
+    # first, make sure that we reject calls that use an incorrect secret
+    expected1 = NeptuneManager::BAD_SECRET_MSG
+    actual1 = neptune.batch_does_file_exist([], "bad secret")
+    assert_equal(expected1, actual1)
+
+    # now, let's do a test where all the files exist
+
+    # first, mock out our s3 connection
+    access = "access key"
+    secret = "secret key"
+    s3_url = "s3 url"
+
+    fake_s3 = flexmock('fake_s3')
+    fake_s3.should_receive(:list_all_my_buckets).with().
+      and_return([{:name => "boo"}])
+    fake_s3.should_receive(:get_acl).with("boo", "baz1.rb").and_return(true)
+    fake_s3.should_receive(:get_acl).with("boo", "baz2.rb").and_return(true)
+    flexmock(RightAws::S3Interface).should_receive(:new).with(access, secret).
+      and_return(fake_s3)
+
+    creds = {
+      "@storage" => DatastoreS3::NAME,
+      "@EC2_ACCESS_KEY" => access,
+      "@EC2_SECRET_KEY" => secret,
+      "@S3_URL" => s3_url
+    }
+    file1 = "/boo/baz1.rb"
+    file2 = "/boo/baz2.rb"
+    files1 = {creds => [file1, file2]}
+    expected2 = {
+      "files_that_exist" => files1,
+      "files_that_dont_exist" => {},
+      "success" => true
+    }
+    actual2 = neptune.batch_does_file_exist(files1, @secret)
+    assert_equal(expected2['files_that_exist'][creds].sort, 
+      actual2['files_that_exist'][creds].sort)
+    assert_equal(expected2['files_that_dont_exist'], 
+      actual2['files_that_dont_exist'])
+    assert_equal(expected2['success'], actual2['success'])
+  end
+
 end

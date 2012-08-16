@@ -191,6 +191,7 @@ class NeptuneManager
   end
 
 
+  # FIXME: not called jobs anymore - make this the batch version!
   def start_job(jobs, secret)
     if jobs.class == Hash
       jobs = [jobs]
@@ -1184,6 +1185,105 @@ class NeptuneManager
   def is_hybrid_cloud?()
     cloud_info = HelperFunctions.get_cloud_info()
     return cloud_info['is_hybrid_cloud?']
+  end
+
+
+  # Runs a series of jobs in parallel, if the correct secret is given. Jobs is
+  # expected to be an Array of Hashes, where each Hash is a job to run. This
+  # function provides batch functionality for the 'start_job' method.
+  def batch_start_job(jobs, secret)
+    return BAD_SECRET_MSG unless valid_secret?(secret)
+    Thread.new {
+      dispatch_jobs(jobs)
+    }
+    return {"success" => true, "state" => JOB_IS_RUNNING}
+  end
+
+
+  # Stores a series of files in the specified datastores, if the correct
+  # secret is given. 'files' is assumed to be a Hash that maps a given set of
+  # datastore credentials to the files that can be stored with those 
+  # credentials. This method provides batch functionality for the 'put_input' 
+  # method.
+  def batch_put_input(creds_and_files, secret)
+    return BAD_SECRET_MSG unless valid_secret?(secret)
+
+    creds_and_files.each { |creds, files|
+      name = creds["@storage"]
+      datastore = DatastoreFactory.get_datastore(name, creds)
+      files.each { |file_data|
+        local = file_data["local"]
+        remote = file_data["remote"]
+        wait_for_file_to_exist(local)
+        datastore.write_remote_file_from_local_file(remote, local)
+        FileUtils.rm_rf(local)
+      }
+    }
+
+    return {"success" => true}
+  end
+
+
+  # Waits for the specified file to exist on the local filesystem, and then
+  # returns.
+  def wait_for_file_to_exist(filename)
+    loop {
+      if File.exists?(filename)
+        NeptuneManager.log("Found file #{filename}, returning.")
+        return
+      else
+        NeptuneManager.log("Still waiting for #{filename} to exist")
+        Kernel.sleep(5)
+      end
+    }
+  end
+
+
+  # For each file given, determines if it exists in the specified datastore
+  # with the specified credentials. 'creds_and_files' is assumed to be a Hash
+  # that maps a given set of datastore credentials to the files that can be
+  # checked with those credentials. This method provides batch functionality
+  # for the 'does_file_exist' method.
+  def batch_does_file_exist(creds_and_files, secret)
+    return BAD_SECRET_MSG unless valid_secret?(secret)
+
+    creds_and_files_that_exist = {}
+    creds_and_files_that_dont_exist = {}
+
+    creds_and_files.each { |creds, files|
+      name = creds["@storage"]
+      datastore = DatastoreFactory.get_datastore(name, creds)
+      file_status = datastore.batch_does_file_exist?(files)
+      creds_and_files_that_exist[creds] = []
+      creds_and_files_that_dont_exist[creds] = []
+      file_status.each { |filename, exists|
+        if exists
+          creds_and_files_that_exist[creds] << filename
+        else
+          creds_and_files_that_dont_exist[creds] << filename
+        end
+      }
+    }
+
+    # finally, remove any entries if there aren't any files associated
+    # with them
+    creds_and_files_that_exist.each { |creds, files|
+      if files.empty?
+        creds_and_files_that_exist.delete(creds)
+      end
+    }
+
+    creds_and_files_that_dont_exist.each { |creds, files|
+      if files.empty?
+        creds_and_files_that_dont_exist.delete(creds)
+      end
+    }
+
+    return {
+      "files_that_exist" => creds_and_files_that_exist,
+      "files_that_dont_exist" => creds_and_files_that_dont_exist,
+      "success" => true
+    }
   end
 
 
