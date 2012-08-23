@@ -403,12 +403,12 @@ class NeptuneManager
     NeptuneManager.copy_code_and_inputs_to_dir(job_data, dir)
     output, error = NeptuneManager.run_code(job_data, dir)
     NeptuneManager.write_babel_outputs(output, error, job_data)
-    NeptuneManager.cleanup(dir)
+    #NeptuneManager.cleanup(dir)
   end
 
 
   def self.create_temp_dir()
-    dir = "/tmp/babel-#{rand(10000)}/"
+    dir = "/var/cache/neptune/"
     FileUtils.mkdir_p(dir)
     return dir
   end
@@ -467,6 +467,7 @@ class NeptuneManager
     bucket, file = DatastoreS3.parse_s3_key(remote)
     remote_dir = file
     local_file = File.expand_path(local + "/" + remote_dir)
+
     NeptuneManager.log("downloading remote file #{remote} to local location #{local_file}")
     NeptuneManager.log("bucket is #{bucket}, file is #{file}")
 

@@ -88,6 +88,12 @@ class DatastoreS3 < Datastore
         next
       end
 
+      if File.exists?(full_local_path)
+        NeptuneManager.log("Local file #{full_local_path} already exists - " +
+          "not downloading it again.")
+        next
+      end
+
       begin
         f = File.new(full_local_path, File::CREAT|File::RDWR)
         result = @conn.get(bucket, s3_filename) { |chunk|
