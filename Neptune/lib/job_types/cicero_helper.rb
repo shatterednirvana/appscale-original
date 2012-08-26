@@ -315,17 +315,17 @@ class NeptuneManager
 
     # right now, we have tasks store data with the output as the
     # key name, so return that so that others can read the task's info
-    NeptuneManager.log("done enqueuing task for output #{output}")
-    return output
-    #NeptuneManager.log("done enqueuing task, got id #{response['id']}")
-    #return response["id"] #response
+    #NeptuneManager.log("done enqueuing task for output #{output}")
+    #return output
+    NeptuneManager.log("done enqueuing task, got id #{response['id']}")
+    return response["id"] #response
   end
 
   def self.wait_for_task_to_complete(host, task_id)
     response = {}
     start_time = Time.now
     loop {
-      query_params = {:id => self.sanitize(task_id), :task_id => self.sanitize(task_id)}
+      query_params = {:id => task_id, :task_id => task_id}
       begin
         response = JSONClient.get("#{host}/task", :body => '', 
           :query => query_params)
