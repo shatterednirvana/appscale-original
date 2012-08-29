@@ -129,8 +129,8 @@ class TaskEngineGoogleAppEngine < TaskEngine
 
 
   def get_app_url(job_data)
-    host = "http://#{job_data['@appid']}.cloudapp.net"
-    #host = "http://#{job_data['@appid']}.appspot.com"
+    #host = "http://#{job_data['@appid']}.cloudapp.net"
+    host = "http://#{job_data['@appid']}.appspot.com"
     NeptuneManager.log("Google App Engine app is hosted at #{host}")
     return host
   end

@@ -315,10 +315,10 @@ class NeptuneManager
 
     # right now, we have tasks store data with the output as the
     # key name, so return that so that others can read the task's info
-    #NeptuneManager.log("done enqueuing task for output #{output}")
-    #return output
-    NeptuneManager.log("done enqueuing task, got id #{response['id']}")
-    return response["id"] #response
+    NeptuneManager.log("done enqueuing task for output #{output}")
+    return output
+    #NeptuneManager.log("done enqueuing task, got id #{response['id']}")
+    #return response["id"] #response
   end
 
   def self.wait_for_task_to_complete(host, task_id)
@@ -375,6 +375,7 @@ class NeptuneManager
   end
 
   def self.sanitize(string)
+    return string
     string.gsub(/[^\w\d]/, '')
   end
 
