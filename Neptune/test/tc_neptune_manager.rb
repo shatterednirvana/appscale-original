@@ -104,7 +104,7 @@ class TestNeptuneManager < Test::Unit::TestCase
       and_return("0\n", "2\n")
 
     neptune = NeptuneManager.new()
-    neptune.start()
+    neptune.start(max_iterations=0)
 
     one = {
       "@type" => "babel",
@@ -186,7 +186,7 @@ class TestNeptuneManager < Test::Unit::TestCase
       with(HelperFunctions::CLOUD_INFO_FILE, Proc).and_return(cloud_info_json)
 
     neptune = NeptuneManager.new()
-    neptune.start()
+    neptune.start(max_iterations=0)
 
     one = {
       "@type" => "mpi",
@@ -314,5 +314,41 @@ class TestNeptuneManager < Test::Unit::TestCase
       actual2['files_that_dont_exist'])
     assert_equal(expected2['success'], actual2['success'])
   end
+
+  
+  def test_start_with_roles_not_changing
+    # assume that ZK is up
+    zookeeper = flexmock("zookeeper")
+
+    # mock out getting this node's job data
+    my_ip_job_path = "#{ZKInterface::APPCONTROLLER_NODE_PATH}/#{@public_ip}" +
+      "/job_data"
+    job_data = "#{@public_ip}:private_ip:shadow:mpi_master:instance_id:cloud1"
+    zookeeper.should_receive(:get).with(:path => my_ip_job_path).
+      and_return({:rc => 0, :data => job_data})
+
+    # mock out getting all node data
+    all_node_data = JSON.dump({
+      'last_updated' => 1,
+      'ips' => [@public_ip]
+    })
+    zookeeper.should_receive(:get).with(:path => ZKInterface::IP_LIST).
+      and_return({:rc => 0, :data => all_node_data})
+
+    flexmock(Zookeeper).should_receive(:new).with('public_ip1:2181').
+      and_return(zookeeper)
+
+    neptune = NeptuneManager.new()
+    neptune.start(max_iterations=1)
+
+    expected = true
+    actual = neptune.my_node.is_mpi_master?
+    assert_equal(expected, actual)
+
+    expected_roles_running = ["shadow", "mpi_master"]
+    actual_roles_running = neptune.roles_running
+    assert_equal(expected_roles_running, actual_roles_running)
+  end
+
 
 end

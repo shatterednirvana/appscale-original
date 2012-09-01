@@ -120,23 +120,37 @@ class NeptuneManager
   attr_accessor :jobs
 
 
+  # A list of the roles that this NeptuneManager has started.
+  attr_accessor :roles_running
+
+
   # TODO(cgb): back these up to zookeeper and restore from there as needed
   def initialize()
     @secret = HelperFunctions.get_secret()
     @queues_to_read = []
     @jobs = {}
+    @roles_running = []
+    @kill_sig_received = false
   end
 
 
   def NeptuneManager.log(msg)
-    Kernel.puts(msg)
+    Kernel.puts("[#{Time.now}] #{msg}")
     STDOUT.flush()
   end
 
 
-  def start()
+  def start(max_iterations=10000000)
     initialize_zookeeper_connection()
-    #manage_virtual_machines()
+
+    current_iteration = 0
+    loop {
+      break if current_iteration >= max_iterations
+      #manage_virtual_machines()
+      manage_neptune_roles()
+      current_iteration += 1
+      Kernel.sleep(10)
+    }
   end
 
 
@@ -183,6 +197,40 @@ class NeptuneManager
         FileUtils.rm_f("/etc/appscale/status-#{node.private_ip}.json")
       end
     }
+  end
+
+
+  def manage_neptune_roles()
+    roles = my_node.jobs
+    
+    roles_to_start = roles - @roles_running
+    NeptuneManager.log("About to start the following roles: " +
+      "#{roles_to_start.join(', ')}")
+    roles_to_start.each { |role|
+      method = "start_#{role}".to_sym
+      if respond_to?(method)
+        Thread.new { send(method) }
+      else
+        NeptuneManager.log("NeptuneManager does not implement #{method} - " +
+          "not calling it.")
+      end
+    }
+    
+    roles_to_stop = @roles_running - roles
+    NeptuneManager.log("About to stop the following roles: " +
+      "#{roles_to_stop.join(', ')}")
+    roles_to_stop.each { |role|
+      method = "stop_#{role}".to_sym
+      if respond_to?(method)
+        send(method)
+      else
+        NeptuneManager.log("NeptuneManager does not implement #{method} - " +
+          "not calling it.")
+      end
+    }
+
+    NeptuneManager.log("Done updating my roles!")
+    @roles_running = roles
   end
 
   
@@ -552,6 +600,9 @@ class NeptuneManager
 
   def start_job_roles(nodes, job_data)
     NeptuneManager.log("job - start")
+    return # TODO(cgb): is this needed with the new refactoring?
+    # or should we only be waiting for roles to be added if we had to add them?
+    # e.g., not wait if they were already the correct role (e.g., babel_master)
 
     # if all the resources are remotely owned, we can't add roles to
     # them, so don't
@@ -1121,6 +1172,11 @@ class NeptuneManager
     zk_job_data = ZKInterface.get_job_data_for_ip(my_ip)
     NeptuneManager.log("My node's job data is #{zk_job_data}")
     return DjinnJobData.deserialize(zk_job_data)
+  end
+
+
+  def get_shadow
+    get_node_with_role("shadow")  
   end
 
 

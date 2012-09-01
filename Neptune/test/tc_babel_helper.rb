@@ -28,6 +28,11 @@ class TestBabelHelper < Test::Unit::TestCase
     @secret = "baz"
     flexmock(File).should_receive(:open).
       with("/etc/appscale/secret.key", Proc).and_return(@secret)
+
+    # mocks for getting our public ip
+    @public_ip = "my-public-ip"
+    flexmock(File).should_receive(:open).
+      with(HelperFunctions::PUBLIC_IP_FILE, Proc).and_return(@public_ip)
   end
 
   def test_neptune_babel_soap_exposed_methods_bad_secret
