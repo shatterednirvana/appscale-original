@@ -1160,6 +1160,9 @@ class Djinn
       return node if node.is_shadow?
     }
 
+    Djinn.log_debug("Couldn't find a shadow node in the following nodes: " +
+      "#{@nodes.join(', ')}")
+
     abort("No shadow nodes found.")
   end
 
@@ -1535,6 +1538,7 @@ class Djinn
 
  
   def update_api_status()
+    return
     if my_node.is_appengine?
       repo_host = my_node.private_ip
     else
@@ -1797,6 +1801,9 @@ class Djinn
   # they are still running, and if not, to remedy it somehow.
   # Returns an Array of the roles that this process started.
   def ensure_all_roles_are_running
+    return  # this method appears to erroneously believe that non-failed nodes
+    # are failed.
+
     # Open nodes should be given priority to take on roles from other nodes.
     # if my node isnt open and there are open nodes, return
     #are_open_nodes = false
@@ -2158,12 +2165,6 @@ class Djinn
     if my_node.is_shadow? or my_node.is_appengine?
       start_sisyphus
       Repo.start(get_login.public_ip, @userappserver_private_ip)
-    end
-
-    # TODO(cgb): replace this with something more generic, in case other neptune
-    # jobs need it down the road
-    if my_node.is_babel_slave?
-      start_babel_slave
     end
 
     # appengine is started elsewhere
