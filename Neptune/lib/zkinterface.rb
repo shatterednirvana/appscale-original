@@ -95,7 +95,13 @@ class ZKInterface
 
   # The maximum amount of time that we should wait for an arbitrary ZooKeeper
   # call to take before we believe it's timed out.
-  ZK_OPERATION_TIMEOUT = 10
+  ZK_OPERATION_TIMEOUT = 60
+
+
+  # The maximum number of times that a ZooKeeper operation is allowed to timeout
+  # before we discard our connection and grab a new one (presuming that the
+  # problem was connection-related).
+  MAX_TIMEOUTS = 10
 
 
   public
@@ -627,15 +633,26 @@ class ZKInterface
 
 
   def self.run_zookeeper_operation(&block)
+    timeouts = 0
     begin
       NeptuneManager.log("Running a ZooKeeper operation")
       Timeout::timeout(ZK_OPERATION_TIMEOUT) {
         yield
       }
     rescue Timeout::Error
-      NeptuneManager.log("ZooKeeper operation timed out, will try again")
-      Kernel.sleep(1)
-      retry
+      if timeouts < MAX_TIMEOUTS
+        NeptuneManager.log("ZooKeeper operation timed out, will try again")
+        timeouts += 1
+        Kernel.sleep(1)
+        retry
+      else
+        NeptuneManager.log("ZooKeeper operation timed out too many times - " +
+          "grabbing a new ZooKeeper connection and trying again.")
+        self.reinitialize()
+        timeouts = 0
+        Kernel.sleep(1)
+        retry
+      end
     rescue ZookeeperExceptions::ZookeeperException::SessionExpired,
       ZookeeperExceptions::ZookeeperException::ConnectionClosed
 
